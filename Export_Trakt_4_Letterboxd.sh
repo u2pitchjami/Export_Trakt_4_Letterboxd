@@ -1,7 +1,7 @@
 #!/bin/bash
 ############################################################################## 
 #                                                                            #
-#	SHELL: !/bin/bash       version 1   	                                     #
+#	SHELL: !/bin/bash       version 1.5  	                                     #
 #									                                                           #
 #	NOM: u2pitchjami						                                               #
 #									                                                           #
@@ -15,7 +15,6 @@
 # Trakt backup script (note that user profile must be public)
 # Trakt API documentation: http://docs.trakt.apiary.io
 # Trakt client API key: http://docs.trakt.apiary.io/#introduction/create-an-app
-
 
 source ./.config.cfg
 
@@ -101,28 +100,30 @@ echo -e "Voilà c'est fini, sauvegarde réalisée" | tee -a "${LOG}"
 else
     if [ $OPTION == "initial" ]
       then
-      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "./TEMP/temp_rating.csv"
       cat ${BACKUP_DIR}/${USERNAME}-watched_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
     else
       cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp_rating.csv"
       cat ${BACKUP_DIR}/${USERNAME}-history_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
       #diff -u <(cut -d "," -f1,2,3,4 temp_rating.csv) <(cut -d "," -f1,2,3,4 temp.csv) | grep '^+' | sed 's/^+//' 
-    
+    fi   
     COUNT=$(cat "./TEMP/temp.csv" | wc -l)
     for ((o=1; o<=$COUNT; o++))
     do
       LIGNE=$(cat "./TEMP/temp.csv" | head -$o | tail +$o)
-      
       DEBUT=$(echo "$LIGNE" | cut -d "," -f1,2,3,4)
       SCENEIN=$(grep -e "^${DEBUT}" ./TEMP/temp_rating.csv)
+      
         if [[ -n $SCENEIN ]]
           then
-          echo "${SCENEIN}" >> "./TEMP/temp.csv"
+          NOTE=$(echo "${SCENEIN}" | cut -d "," -f6 )
+          
+          sed -i ""$o"s|$|$NOTE|" ./TEMP/temp.csv
         fi
-      
-      done
+     
+    done
     
-    fi
+    
 
 
     if [[ -f "letterboxd_import.csv" ]]

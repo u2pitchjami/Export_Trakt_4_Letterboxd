@@ -142,10 +142,17 @@ else
       DEBUTCOURT=$(echo "$LIGNETEMP" | cut -d "," -f1,2)
       MILIEU=$(echo "$LIGNETEMP" | cut -d "," -f5 | cut -d "T" -f1 | tr -d "\"")
       FIN=$(echo "$LIGNETEMP" | cut -d "," -f6)
-      SCENEIN2=$(grep -e "^${DEBUT},${MILIEU},${FIN}" letterboxd_import.csv)
-        if [[ -n $SCENEIN2 ]]
+      SCENEIN1=$(grep -e "^${DEBUT},${MILIEU}" letterboxd_import.csv)
+        if [[ -n $SCENEIN1 ]]
           then
-          echo "Film : ${DEBUTCOURT} déjà présent dans le fichier d'import" | tee -a "${LOG}"
+          SCENEIN2=$(grep -n "^${DEBUT},${MILIEU},${FIN}" letterboxd_import.csv)
+          if [[ -n $SCENEIN2 ]]
+            then
+            echo "Film : ${DEBUTCOURT} déjà présent dans le fichier d'import" | tee -a "${LOG}"
+          else
+            sed -i ""$SCENEIN2"s|$|$FIN|" letterboxd_import.csv
+            echo "Film : ${DEBUTCOURT} déjà présent mais ajout de la note $FIN" | tee -a "${LOG}"
+          fi
         else
           echo "${DEBUT},${MILIEU},${FIN}"
           echo "${DEBUT},${MILIEU},${FIN}" | tee -a "${LOG}" >> "letterboxd_import.csv"

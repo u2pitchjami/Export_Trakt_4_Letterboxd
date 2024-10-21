@@ -139,18 +139,32 @@ else
     do
       LIGNETEMP=$(cat "./TEMP/temp.csv" | head -$p | tail +$p)
       DEBUT=$(echo "$LIGNETEMP" | cut -d "," -f1,2,3,4)
+      #echo "debut $DEBUT"
       DEBUTCOURT=$(echo "$LIGNETEMP" | cut -d "," -f1,2)
       MILIEU=$(echo "$LIGNETEMP" | cut -d "," -f5 | cut -d "T" -f1 | tr -d "\"")
+      #echo "MILIEU $MILIEU"
       FIN=$(echo "$LIGNETEMP" | cut -d "," -f6)
+     # echo "FIN $FIN"
       SCENEIN1=$(grep -e "^${DEBUT},${MILIEU}" letterboxd_import.csv)
+      
+      #echo "SCENEIN1 $SCENEIN1"
         if [[ -n $SCENEIN1 ]]
           then
-          SCENEIN2=$(grep -n "^${DEBUT},${MILIEU},${FIN}" letterboxd_import.csv)
-          if [[ -n $SCENEIN2 ]]
+          FIN1=$(echo "$SCENEIN1" | cut -d "," -f6)
+          #echo "fin1 $FIN1"
+          SCENEIN2=$(grep -n "^${DEBUT},${MILIEU}" letterboxd_import.csv | cut -d ":" -f 1)
+          #echo "scenein2 $SCENEIN2"
+          if [[ "${DEBUT},${MILIEU},${FIN}" == "${DEBUT},${MILIEU},${FIN1}" ]]
             then
             echo "Film : ${DEBUTCOURT} déjà présent dans le fichier d'import" | tee -a "${LOG}"
           else
-            sed -i ""$SCENEIN2"s|$|$FIN|" letterboxd_import.csv
+            #FIN2=$(echo "$SCENEIN2" | cut -d "," -f6)
+            if [[ -n $FIN1 ]]
+              then
+              sed -i ""$SCENEIN2"s/$FIN1/$FIN/" letterboxd_import.csv
+              else
+              sed -i ""$SCENEIN2"s/$/$FIN/" letterboxd_import.csv
+              fi
             echo "Film : ${DEBUTCOURT} déjà présent mais ajout de la note $FIN" | tee -a "${LOG}"
           fi
         else
@@ -169,4 +183,4 @@ else
     echo -e "${BOLD}N'oubliez pas de supprimer le ficher csv !!! ${NC}" | tee -a "${LOG}"
 fi
 rm -r ${BACKUP_DIR}/
-rm -r ./TEMP/
+#rm -r ./TEMP/

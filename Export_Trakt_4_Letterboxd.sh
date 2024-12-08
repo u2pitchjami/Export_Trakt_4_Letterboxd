@@ -15,8 +15,8 @@
 # Trakt backup script (note that user profile must be public)
 # Trakt API documentation: http://docs.trakt.apiary.io
 # Trakt client API key: http://docs.trakt.apiary.io/#introduction/create-an-app
-
-source ./.config.cfg
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+source ${SCRIPT_DIR}/.config.cfg
 
 
 ##########################CONTROLE SI OPTION "COMPLET" ACTIVE################
@@ -107,18 +107,18 @@ else
       cat ${BACKUP_DIR}/${USERNAME}-history_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
       #diff -u <(cut -d "," -f1,2,3,4 temp_rating.csv) <(cut -d "," -f1,2,3,4 temp.csv) | grep '^+' | sed 's/^+//' 
     fi   
-    COUNT=$(cat "./TEMP/temp.csv" | wc -l)
+    COUNT=$(cat "${SCRIPT_DIR}/TEMP/temp.csv" | wc -l)
     for ((o=1; o<=$COUNT; o++))
     do
-      LIGNE=$(cat "./TEMP/temp.csv" | head -$o | tail +$o)
+      LIGNE=$(cat "${SCRIPT_DIR}/TEMP/temp.csv" | head -$o | tail +$o)
       DEBUT=$(echo "$LIGNE" | cut -d "," -f1,2,3,4)
-      SCENEIN=$(grep -e "^${DEBUT}" ./TEMP/temp_rating.csv)
+      SCENEIN=$(grep -e "^${DEBUT}" ${SCRIPT_DIR}/TEMP/temp_rating.csv)
       
         if [[ -n $SCENEIN ]]
           then
           NOTE=$(echo "${SCENEIN}" | cut -d "," -f6 )
           
-          sed -i ""$o"s|$|$NOTE|" ./TEMP/temp.csv
+          sed -i ""$o"s|$|$NOTE|" ${SCRIPT_DIR}/TEMP/temp.csv
         fi
      
     done
@@ -126,18 +126,18 @@ else
     
 
 
-    if [[ -f "letterboxd_import.csv" ]]
+    if [[ -f "${SCRIPT_DIR}/letterboxd_import.csv" ]]
         then
         echo -e "Fichier existant, nouveaux films à la suite" | tee -a "${LOG}"
     else
         echo -e "Génération du fichier letterboxd_import.csv" | tee -a "${LOG}"
-        echo "Title, Year, imdbID, tmdbID, WatchedDate, Rating10" >> "letterboxd_import.csv"
+        echo "Title, Year, imdbID, tmdbID, WatchedDate, Rating10" >> "${SCRIPT_DIR}/letterboxd_import.csv"
     fi
     echo -e "Ajouts des données suivantes : " | tee -a "${LOG}"
-    COUNTTEMP=$(cat "./TEMP/temp.csv" | wc -l)
+    COUNTTEMP=$(cat "${SCRIPT_DIR}/TEMP/temp.csv" | wc -l)
     for ((p=1; p<=$COUNTTEMP; p++))
     do
-      LIGNETEMP=$(cat "./TEMP/temp.csv" | head -$p | tail +$p)
+      LIGNETEMP=$(cat "${SCRIPT_DIR}/TEMP/temp.csv" | head -$p | tail +$p)
       DEBUT=$(echo "$LIGNETEMP" | cut -d "," -f1,2,3,4)
       #echo "debut $DEBUT"
       DEBUTCOURT=$(echo "$LIGNETEMP" | cut -d "," -f1,2)
@@ -145,14 +145,14 @@ else
       #echo "MILIEU $MILIEU"
       FIN=$(echo "$LIGNETEMP" | cut -d "," -f6)
      # echo "FIN $FIN"
-      SCENEIN1=$(grep -e "^${DEBUT},${MILIEU}" letterboxd_import.csv)
+      SCENEIN1=$(grep -e "^${DEBUT},${MILIEU}" ${SCRIPT_DIR}/letterboxd_import.csv)
       
       #echo "SCENEIN1 $SCENEIN1"
         if [[ -n $SCENEIN1 ]]
           then
           FIN1=$(echo "$SCENEIN1" | cut -d "," -f6)
           #echo "fin1 $FIN1"
-          SCENEIN2=$(grep -n "^${DEBUT},${MILIEU}" letterboxd_import.csv | cut -d ":" -f 1)
+          SCENEIN2=$(grep -n "^${DEBUT},${MILIEU}" ${SCRIPT_DIR}/letterboxd_import.csv | cut -d ":" -f 1)
           #echo "scenein2 $SCENEIN2"
           if [[ "${DEBUT},${MILIEU},${FIN}" == "${DEBUT},${MILIEU},${FIN1}" ]]
             then
@@ -161,21 +161,21 @@ else
             #FIN2=$(echo "$SCENEIN2" | cut -d "," -f6)
             if [[ -n $FIN1 ]]
               then
-              sed -i ""$SCENEIN2"s/$FIN1/$FIN/" letterboxd_import.csv
+              sed -i ""$SCENEIN2"s/$FIN1/$FIN/" ${SCRIPT_DIR}/letterboxd_import.csv
               else
-              sed -i ""$SCENEIN2"s/$/$FIN/" letterboxd_import.csv
+              sed -i ""$SCENEIN2"s/$/$FIN/" ${SCRIPT_DIR}/letterboxd_import.csv
               fi
             echo "Film : ${DEBUTCOURT} déjà présent mais ajout de la note $FIN" | tee -a "${LOG}"
           fi
         else
           echo "${DEBUT},${MILIEU},${FIN}"
-          echo "${DEBUT},${MILIEU},${FIN}" | tee -a "${LOG}" >> "letterboxd_import.csv"
+          echo "${DEBUT},${MILIEU},${FIN}" | tee -a "${LOG}" >> "${SCRIPT_DIR}/letterboxd_import.csv"
         fi  
     done
     #while IFS= read -r line; do
       
     #done < "./TEMP/temp.csv"
-    cp letterboxd_import.csv "$DOSCOPY/letterboxd_import.csv"
+    cp ${SCRIPT_DIR}/letterboxd_import.csv "$DOSCOPY/letterboxd_import.csv"
     echo " " | tee -a "${LOG}"
     echo -e "Fichier letterboxd_import.csv copié dans le dossier $DOSCOPY" | tee -a "${LOG}"
     echo -e "${BOLD}A intégrer à l'adresse suivante : https://letterboxd.com/import/ ${NC}" | tee -a "${LOG}"
@@ -183,4 +183,4 @@ else
     echo -e "${BOLD}N'oubliez pas de supprimer le ficher csv !!! ${NC}" | tee -a "${LOG}"
 fi
 rm -r ${BACKUP_DIR}/
-#rm -r ./TEMP/
+rm -r ${SCRIPT_DIR}/TEMP/

@@ -173,4 +173,5 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-2024-10-01_13-00-01_trakt-backup.tar.gz
+*.tar.gz
+/logs

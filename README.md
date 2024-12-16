@@ -16,11 +16,19 @@ The import files is updated every day by the normal mode and manualy inject ever
 ## Installation
 
 ### 1 - Clone the repository :
+```bash
+git clone https://github.com/u2pitchjami/Export_Trakt_4_Letterboxd.git
+```  
 ### 2 - Obtain Trakt Api Key :
 
 ![image](https://github.com/user-attachments/assets/74512753-929c-4dcc-91b4-13e6de62d31c)
 
 ### 3 - Create and edit .config.cfg :
+```bash
+cd Export_Trakt_4_Letterboxd
+sudo mv .config.cfg.example .config.cfg
+sudo nano .config.cfg
+``` 
 
 ![image](https://github.com/user-attachments/assets/b8e148ae-d6eb-4238-96db-4813cefa4216)
 
@@ -28,15 +36,13 @@ The import files is updated every day by the normal mode and manualy inject ever
 ## Usage/Examples
 
 ### 1 - Start the script
-
-Export_Trakt_4_Letterboxd.sh initial  --> for initialisation (take all trakt movies)
-
-Export_Trakt_4_Letterboxd.sh          --> default mode, take only the last 10 movies
-
-Export_Trakt_4_Letterboxd.sh complet  --> save and compress trakt data
-
 ```bash
-Export_Trakt_4_Letterboxd.sh
+Export_Trakt_4_Letterboxd.sh initial  # --> for initialisation (take all trakt movies)
+
+Export_Trakt_4_Letterboxd.sh          # --> default mode, take only the last 10 movies
+
+Export_Trakt_4_Letterboxd.sh complet  # --> default mode + save and compress trakt data
+
 ```    
 It will generate a csv file
 

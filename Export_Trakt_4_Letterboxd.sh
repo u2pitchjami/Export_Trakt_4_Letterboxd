@@ -77,7 +77,7 @@ do
   filename="${USERNAME}-${endpoint//\//_}.json"
  
 
-  wget --quiet \
+  wget \
     -O ${BACKUP_DIR}/${filename} \
     --header "Content-Type: application/json" \
     --header "trakt-api-key: ${API_KEY}" \

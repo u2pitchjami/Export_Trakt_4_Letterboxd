@@ -16,13 +16,25 @@
 # Trakt API documentation: http://docs.trakt.apiary.io
 # Trakt client API key: http://docs.trakt.apiary.io/#introduction/create-an-app
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
+echo "$SCRIPT_DIR"
 source ${SCRIPT_DIR}/.config.cfg
 
+if [ -d ${SCRIPT_DIR}/TEMP ]
+	then
+	rm -r ${SCRIPT_DIR}/TEMP
+fi
+mkdir ${SCRIPT_DIR}/TEMP
+if [ ! -d $DOSLOG ]
+	then
+	mkdir $DOSLOG
+fi
+
+
 refresh_access_token() {
-    echo "🔄 Rafraîchissement du token Trakt..."
+    echo "🔄 Rafraîchissement du token Trakt..." | tee -a "${LOG}"
     
     RESPONSE=$(curl -s -X POST "https://api.trakt.tv/oauth/token" \
-        -H "Content-Type: application/json" \
+        -H "Content-Type: application/json" -v \
         -d "{
             \"refresh_token\": \"${REFRESH_TOKEN}\",
             \"client_id\": \"${API_KEY}\",
@@ -35,7 +47,7 @@ refresh_access_token() {
     NEW_REFRESH_TOKEN=$(echo "$RESPONSE" | jq -r '.refresh_token')
 
     if [[ "$NEW_ACCESS_TOKEN" != "null" && "$NEW_REFRESH_TOKEN" != "null" ]]; then
-        echo "✅ Token rafraîchi avec succès."
+        echo "✅ Token rafraîchi avec succès." | tee -a "${LOG}"
         sed -i "s|ACCESS_TOKEN=.*|ACCESS_TOKEN=\"$NEW_ACCESS_TOKEN\"|" .config.cfg
         sed -i "s|REFRESH_TOKEN=.*|REFRESH_TOKEN=\"$NEW_REFRESH_TOKEN\"|" .config.cfg
         source .config.cfg  # Recharge les variables mises à jour
@@ -147,15 +159,15 @@ echo -e "Voilà c'est fini, sauvegarde réalisée" | tee -a "${LOG}"
 else
     if [ $OPTION == "initial" ]
       then
-      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "./TEMP/temp_rating.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-watched_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_rating.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-watched_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .last_watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp.csv"
     else
-      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp_rating.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-ratings_episodes.json | jq -r '.[]|[.show.title, .show.year, .episode.title, .episode.season, .episode.number, .show.ids.imdb, .show.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp_rating_episodes.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-history_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-history_shows.json | jq -r '.[]|[.show.title, .show.year, .episode.title, .episode.season, .episode.number, .show.ids.imdb, .show.ids.tmdb, .watched_at, .rating]|@csv' >> "./TEMP/temp_show.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-watchlist_movies.json | jq -r '.[]|[.type, .movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .listed_at]|@csv' >> "./TEMP/temp_watchlist.csv"
-      cat ${BACKUP_DIR}/${USERNAME}-watchlist_shows.json | jq -r '.[]|[.type, .show.title, .show.year, .show.ids.imdb, .show.ids.tmdb, .listed_at]|@csv' >> "./TEMP/temp_watchlist.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-ratings_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_rating.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-ratings_episodes.json | jq -r '.[]|[.show.title, .show.year, .episode.title, .episode.season, .episode.number, .show.ids.imdb, .show.ids.tmdb, .watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_rating_episodes.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-history_movies.json | jq -r '.[]|[.movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-history_shows.json | jq -r '.[]|[.show.title, .show.year, .episode.title, .episode.season, .episode.number, .show.ids.imdb, .show.ids.tmdb, .watched_at, .rating]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_show.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-watchlist_movies.json | jq -r '.[]|[.type, .movie.title, .movie.year, .movie.ids.imdb, .movie.ids.tmdb, .listed_at]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_watchlist.csv"
+      cat ${BACKUP_DIR}/${USERNAME}-watchlist_shows.json | jq -r '.[]|[.type, .show.title, .show.year, .show.ids.imdb, .show.ids.tmdb, .listed_at]|@csv' >> "${SCRIPT_DIR}/TEMP/temp_watchlist.csv"
       #diff -u <(cut -d "," -f1,2,3,4 temp_rating.csv) <(cut -d "," -f1,2,3,4 temp.csv) | grep '^+' | sed 's/^+//' 
     fi   
     COUNT=$(cat "${SCRIPT_DIR}/TEMP/temp.csv" | wc -l)
@@ -254,13 +266,13 @@ COUNT=$(cat "${SCRIPT_DIR}/TEMP/temp_show.csv" | wc -l)
  sed -i 's/"//g' ${SCRIPT_DIR}/TEMP/temp_watchlist.csv
 
 
-  cat ${SCRIPT_DIR}/TEMP/temp2.csv >> /mnt/user/Zin-progress/2nd_brain/mariadb-import/watched_${DATE}.csv
-  cat ${SCRIPT_DIR}/TEMP/temp_show.csv >> /mnt/user/Zin-progress/2nd_brain/mariadb-import/watched_${DATE}.csv
-  cat ${SCRIPT_DIR}/TEMP/temp_watchlist.csv >> /mnt/user/Zin-progress/2nd_brain/mariadb-import/watchlist_${DATE}.csv
+  cat ${SCRIPT_DIR}/TEMP/temp2.csv >> ${BRAIN_OPS}/watched_${DATE}.csv
+  cat ${SCRIPT_DIR}/TEMP/temp_show.csv >> ${BRAIN_OPS}/watched_${DATE}.csv
+  cat ${SCRIPT_DIR}/TEMP/temp_watchlist.csv >> ${BRAIN_OPS}/watchlist_${DATE}.csv
  
 
 
 
 fi
-rm -r ${BACKUP_DIR}/
-rm -r ${SCRIPT_DIR}/TEMP/
+#rm -r ${BACKUP_DIR}/
+#rm -r ${SCRIPT_DIR}/TEMP/

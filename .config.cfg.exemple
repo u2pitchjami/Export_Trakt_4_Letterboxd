@@ -1,11 +1,21 @@
+#TRAKT API Configuration
 API_KEY="trakt api key"
 USERNAME="trakt username"
 API_URL="https://api.trakt.tv"
+CLIENT_SECRET=""
+REDIRECT_URL="urn:ietf:wg:oauth:2.0:oob"
+CODE=""
+ACCESS_TOKEN=""
+REFRESH_TOKEN=""
+#PATHS
 BACKUP_DIR="$(date +"%Y-%m-%d_%H-%M-%S")_trakt-backup"
-DATE=$(date +%Y%m%d_%H%M)
-DOSLOG=/mnt/user/Documents/scripts/logs/Trakt2Letterboxd
-LOG=${DOSLOG}/${DATE}-Shuffle_Video_Mix.txt
+APPDATA=path to temp and csv
 DOSCOPY=/mnt/user/Documents/scripts/logs/Trakt2Letterboxd
+#LOGS
+DATE=$(date +%Y%m%d_%H%M)
+DOSLOG=PATH TO LOGS
+LOG=${DOSLOG}/${DATE}-Export_Trakt_4_Letterboxd.txt
+
 RED='\033[0;31m' #code couleur pour les mauvaises réponses
 GREEN='\033[0;32m' #code couleur pour les bonnes réponses
 NC='\033[0m' # No Color 
